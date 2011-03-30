@@ -1,0 +1,2 @@
+sslac:
+	node Makefile.js

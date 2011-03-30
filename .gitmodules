@@ -1,0 +1,3 @@
+[submodule "vendor/smoosh"]
+	path = vendor/smoosh
+	url = git://github.com/Jakobo/smoosh.git
