@@ -15,7 +15,8 @@
   var globalWindow = this,
       NAMESPACE = "Sslac",
       SslacRegistry = {},
-      externalInterface = null;
+      externalInterface = null,
+      oldSslac = globalWindow[NAMESPACE];
 
   globalWindow[NAMESPACE] = globalWindow[NAMESPACE] || {};
   externalInterface = globalWindow[NAMESPACE];
@@ -325,6 +326,12 @@
   function getDefinition(ns) {
     return SslacRegistry[ns];
   }
+  
+  function noConflict() {
+    var thisSslac = externalInterface;
+    globalWindow[NAMESPACE] = oldSslac;
+    return thisSslac;
+  }
 
   // assign outward
   externalInterface.Class = createObject;
@@ -336,7 +343,7 @@
   externalInterface.nameOf = nameOf;
   externalInterface.valueOf = resolveNamespace;
   externalInterface.definitionOf = getDefinition;
-
+  externalInterface.noConflict = noConflict;
 }());
 
 // licensing block
