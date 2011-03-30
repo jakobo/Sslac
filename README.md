@@ -1,8 +1,8 @@
-h1. Sslac: The somewhat backwards Class functionality added to JavaScript
+# Sslac: The somewhat backwards Class functionality added to JavaScript
 
 Awesome description goes here... eventually.
 
-h1. Building Sslac on your own
+# Building Sslac on your own
 You'll need:
 
 * Node: https://github.com/joyent/node/wiki/Installation
@@ -14,7 +14,7 @@ You'll then run:
 * cd Sslac
 * make
 
-h1. Directory Guide
+# Directory Guide
 
 * **artifacts/** (built using make) contains minified versions of the code all shiny and compiled
 * **config/** contains configs used in building such as the smoosh manifest
