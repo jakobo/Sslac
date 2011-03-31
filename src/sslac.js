@@ -1,18 +1,22 @@
 /*global module: true */
-/**
- * Sslac - A "backwards" class library for JavaScript
- * Provides a consistent way to declare classes to ease 1st and 3rd
- * party development by using closures.
- * Features:
- * - auto extension: Objects can be set to extend by default, allowing for
- *   easy inheritance of this.* properties as well as prototyped methods
- * - static and instance functionality: Can create both statuc and instance
- *   level objects
- * - monkeypatching: objects can be modified on the fly to ease code upgrade paths
- * @class Sslac
- * @author Jakob Heuser <jheuser@linkedin.com>
- */
+
 (function () {
+  
+  /**
+   * Sslac - A "backwards" class library for JavaScript
+   * Provides a consistent way to declare classes to ease 1st and 3rd
+   * party development by using closures.
+   * Features:
+   * - auto extension: Objects can be set to extend by default, allowing for
+   *   easy inheritance of this.* properties as well as prototyped methods
+   * - static and instance functionality: Can create both statuc and instance
+   *   level objects
+   * - monkeypatching: objects can be modified on the fly to ease code upgrade paths
+   * @class Sslac
+   * @static
+   * @author Jakob Heuser <jheuser@linkedin.com>
+   */
+  
   var globalWindow = this,
       NAMESPACE = "Sslac",
       SslacRegistry = {},
@@ -51,10 +55,10 @@
   }
 
   /**
-   * get the namespace object of a given ns
-   * @param ns {String} namespace
-   * @param root {Object} the root NS
-   * @return {Object} the parent NS (for insertion)
+   * @method namespaceOf
+   * @private
+   * @for Sslac
+   * @see namespaceOf
    */
   function namespaceOf(ns, root) {
     var i,
@@ -78,10 +82,10 @@
   }
 
   /**
-   * Get the endpoint name of a namespace
-   * for example: Foo.Bar.Baz => Baz
-   * @param ns {String} the namespace
-   * @param {String} the endpoint name
+   * @method nameOf
+   * @private
+   * @for Sslac
+   * @see nameOf
    */
   function nameOf(ns) {
     var pieces = ns.split(/\./),
@@ -89,7 +93,12 @@
     return last;
   }
 
-  // The "root" of all evil. Really, just an object that gaurentees a base heirarchy
+  /**
+   * The root object from which all others will inherit
+   * @class Class
+   * @for Sslac
+   * @constructor
+   */
   function Class() {
     this.Identifier = function () {
       return {
@@ -103,6 +112,8 @@
    * Root chaining object for Sslac. Takes a namespace and isStatic
    * this is the base object for construction of Sslac classes
    * @class ObjectRef
+   * @consructor
+   * @for Sslac
    */
   function ObjectRef(ns) {
     var parent = null,
@@ -111,6 +122,15 @@
         privilegedMethods = {},
         placeNS = namespaceOf(ns);
     
+    /**
+     * Builds privlieged methods
+     * @for ObjectRef
+     * @method buildMethod
+     * @private
+     * @param name {String} the name of the method
+     * @param scope {Object} a scope for the method to run in
+     * @return {Object} the return value from the named method
+     */
     function buildMethod(name, scope) {
       return function () {
         this.Parents.push(name);
@@ -120,6 +140,15 @@
       };
     }
 
+    /**
+     * Builds prototype methods
+     * @for ObjectRef
+     * @method buildPrototype
+     * @private
+     * @param name {String} the name of the method
+     * @param fn {Function} a function to run in ObjectRef's scope
+     * @return {Object} the return value from the function
+     */
     function buildPrototype(name, fn) {
       return function () {
         this.Parents.push(name);
@@ -129,6 +158,13 @@
       };
     }
 
+    /**
+     * The internally constructed object for ObjectRef
+     * This is what the end user interfaces with
+     * @class F
+     * @for ObjectRef
+     * @constructor
+     */
     function F() {
       var thisObj = this,
           name = null,
@@ -136,8 +172,12 @@
           
       this.Parents = [];
   
-      // the reference to the Parent method
-      // similar to $super() in prototype
+      /**
+       * Invokes the parent method off the prototype chain
+       * @method Parent
+       * @param {Object} takes an overloaded number of arguments
+       * @return {Object} the return value from the parent method
+       */
       this.Parent = function () {
         var name = this.Parents[this.Parents.length - 1],
             id = this.Identifier(),
@@ -179,6 +219,7 @@
     /**
      * defines a constructor
      * @method Constructor
+     * @for F
      * @param {Function} the function to set
      * @return this
      */
@@ -190,6 +231,7 @@
     /**
      * get the constructor that has been defined
      * @method getConstructor
+     * @for F
      * @return {Function}
      */
     this.getConstructor = function () {
@@ -199,6 +241,7 @@
     /**
      * defines a method (this.* syntax)
      * @method Final
+     * @for F
      * @param name {String} the name to store
      * @param fn {Function} the function to set
      * @return this
@@ -211,6 +254,7 @@
     /**
      * get a final defined method (this.* syntax)
      * @method getFinal
+     * @for F
      * @param name {String} the name of the method to get
      * @return {Function}
      */
@@ -221,6 +265,7 @@
     /**
      * Explicitly put something on the prototype
      * @method Method
+     * @for F
      * @param name {String} the name to store
      * @param fn {Function} the function to set
      * @return this
@@ -233,6 +278,7 @@
     /**
      * Get a method from the prototype
      * @method getMethod
+     * @for F
      * @param name {String} the method to get
      * @return {Function}
      */
@@ -243,6 +289,7 @@
     /**
      * Explicitly put something on the static object
      * @method Static
+     * @for F
      * @param name {String} the name to store
      * @param fn {Function} the function to set
      * @return this
@@ -255,6 +302,7 @@
     /**
      * Get something from the static object
      * @method getStatic
+     * @for F
      * @param name {String} the method to get
      * @return {Function}
      */
@@ -265,6 +313,7 @@
     /**
      * define the superclass of this object
      * @method Extends
+     * @for F
      * @param {String|Object} the object to extend
      * @return this
      */
@@ -282,6 +331,7 @@
     /**
      * Get the object this object extends
      * @method getExtends
+     * @for F
      * @return {Object}
      */
     this.getExtends = function () {
@@ -294,40 +344,67 @@
     placeNS[nameOf(ns)] = F;
   }
 
-  // create object
+  /**
+   * @method createObject
+   * @private
+   * @for Sslac
+   * @see Class
+   */
   function createObject(ns) {
     SslacRegistry[ns] = new ObjectRef(ns);
     return SslacRegistry[ns];
   }
 
-  // create static object
-  function createStaticObject(ns) {
-    SslacRegistry[ns] = new ObjectRef(ns);
-    return SslacRegistry[ns];
-  }
-
-  // helper to create a function
+  /**
+   * @method createFunction
+   * @private
+   * @for Sslac
+   * @see Function
+   */
   function createFunction(ns, fn) {
     var placeNS = namespaceOf(ns);
     var placeName = nameOf(ns);
     placeNS[placeName] = fn;
   }
 
-  // helper to just define a namespace
+  /**
+   * @method defineNamespace
+   * @private
+   * @for Sslac
+   * @see Define
+   */
   function defineNamespace(ns) {
     var placeNS = namespaceOf(ns);
     var placeName = nameOf(ns);
     placeNS[placeName] = placeNS[placeName] || {};
   }
   
+  /**
+   * @method resolveNamespace
+   * @private
+   * @for Sslac
+   * @see valueOf
+   */
   function resolveNamespace(ns, root) {
     return namespaceOf(ns, root)[nameOf(ns)];
   }
 
+  /**
+   * @method getDefinition
+   * @private
+   * @for Sslac
+   * @see definitionOf
+   */
   function getDefinition(ns) {
     return SslacRegistry[ns];
   }
   
+  /**
+   * @method noConflict
+   * @private
+   * @for Sslac
+   * @see noConflict
+   */
   function noConflict() {
     var thisSslac = externalInterface;
     globalWindow[NAMESPACE] = oldSslac;
@@ -335,15 +412,98 @@
   }
 
   // assign outward
-  externalInterface.Class = createObject;
-  externalInterface.Static = createStaticObject;
-  externalInterface.Function = createFunction;
-  externalInterface.Define = defineNamespace;
+  
+  // class object for comparisons
   externalInterface.ClassObject = Class;
+  
+  /**
+   * Turns ObjectRef into F by instantiating the ObjectRef
+   * @method Class
+   * @for Sslac
+   * @see createObject
+   * @param ns {String} the namespace to store the new object into
+   * @return {Object} the created object (F)
+   */
+  externalInterface.Class = createObject;
+  
+  /**
+   * Turns ObjectRef into F by instantiating the ObjectRef
+   * @method Static
+   * @for Sslac
+   * @see createObject
+   * @param ns {String} the namespace to store the new object into
+   * @return {Object} the created object (F)
+   */
+  externalInterface.Static = createObject;
+  
+  /**
+   * Creates a function
+   * @method Function
+   * @for Sslac
+   * @see createFunction
+   * @param ns {String} the namespace to store the function in
+   * @param fn {Function} the function to store
+   */
+  externalInterface.Function = createFunction;
+  
+  /**
+   * Ensures a given namespace is defined
+   * @method Define
+   * @for Sslac
+   * @see defineNamespace
+   * @param ns {String} the namespace to define
+   */
+  externalInterface.Define = defineNamespace;
+  
+  /**
+   * get the namespace object of a given ns
+   * @method namespaceOf
+   * @for Sslac
+   * @see namespaceOf
+   * @param ns {String} namespace
+   * @param root {Object} the root NS
+   * @return {Object} the parent NS (for insertion)
+   */
   externalInterface.namespaceOf = namespaceOf;
+  
+  /**
+   * Get the endpoint name of a namespace
+   * for example: Foo.Bar.Baz => Baz
+   * @method nameOf
+   * @for Sslac
+   * @see nameOf
+   * @param ns {String} the namespace
+   * @param {String} the endpoint name
+   */
   externalInterface.nameOf = nameOf;
+  
+  /**
+   * Return the value at a given namespace within a provided root object
+   * @method valueOf
+   * @for Sslac
+   * @see resolveNamespace
+   * @param ns {String} the namespace to find
+   * @param root {Object} the root namespace to check, for example, "window"
+   */
   externalInterface.valueOf = resolveNamespace;
+  
+  /**
+   * Gets the definition object at a given namespace
+   * @method definitionOf
+   * @for Sslac
+   * @see getDefinition
+   * @param ns {String} the namespace to return
+   * @return {Object} the value at ns
+   */
   externalInterface.definitionOf = getDefinition;
+  
+  /**
+   * Allows multiple Sslac instances to coexist
+   * @method noConflict
+   * @for Sslac
+   * @see noConflict
+   * @return {Object} this Sslac object
+   */
   externalInterface.noConflict = noConflict;
   
   // Common JS Modules 1.1 Compliance
@@ -351,35 +511,3 @@
     module.exports = externalInterface.noConflict();
   }
 }());
-
-// licensing block
-// extend()
-/*
-Copyright (c) 2010, Yahoo! Inc.
-All rights reserved.
-Redistribution and use of this software in source and binary forms, with or
-without modification, are permitted provided that the following conditions are
-met:
-
-* Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-* Neither the name of Yahoo! Inc. nor the names of its contributors may be used
-to endorse or promote products derived from this software without specific prior
-written permission of Yahoo! Inc.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
