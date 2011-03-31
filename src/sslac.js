@@ -1,3 +1,4 @@
+/*global module: true */
 /**
  * Sslac - A "backwards" class library for JavaScript
  * Provides a consistent way to declare classes to ease 1st and 3rd
@@ -344,6 +345,11 @@
   externalInterface.valueOf = resolveNamespace;
   externalInterface.definitionOf = getDefinition;
   externalInterface.noConflict = noConflict;
+  
+  // Common JS Modules 1.1 Compliance
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = externalInterface.noConflict();
+  }
 }());
 
 // licensing block
