@@ -1,4 +1,4 @@
-/*global module: true */
+/*global module: true, ObjectRef: true */
 
 (function () {
   
@@ -91,6 +91,73 @@
     var pieces = ns.split(/\./),
         last = pieces[pieces.length - 1];
     return last;
+  }
+  
+  /**
+   * @method createObject
+   * @private
+   * @for Sslac
+   * @see Class
+   */
+  function createObject(ns) {
+    SslacRegistry[ns] = new ObjectRef(ns);
+    return SslacRegistry[ns];
+  }
+
+  /**
+   * @method createFunction
+   * @private
+   * @for Sslac
+   * @see Function
+   */
+  function createFunction(ns, fn) {
+    var placeNS = namespaceOf(ns);
+    var placeName = nameOf(ns);
+    placeNS[placeName] = fn;
+  }
+
+  /**
+   * @method defineNamespace
+   * @private
+   * @for Sslac
+   * @see Define
+   */
+  function defineNamespace(ns) {
+    var placeNS = namespaceOf(ns);
+    var placeName = nameOf(ns);
+    placeNS[placeName] = placeNS[placeName] || {};
+  }
+  
+  /**
+   * @method resolveNamespace
+   * @private
+   * @for Sslac
+   * @see valueOf
+   */
+  function resolveNamespace(ns, root) {
+    return namespaceOf(ns, root)[nameOf(ns)];
+  }
+
+  /**
+   * @method getDefinition
+   * @private
+   * @for Sslac
+   * @see definitionOf
+   */
+  function getDefinition(ns) {
+    return SslacRegistry[ns];
+  }
+  
+  /**
+   * @method noConflict
+   * @private
+   * @for Sslac
+   * @see noConflict
+   */
+  function noConflict() {
+    var thisSslac = externalInterface;
+    globalWindow[NAMESPACE] = oldSslac;
+    return thisSslac;
   }
 
   /**
@@ -215,6 +282,41 @@
   
       return retVal;
     }
+    
+    /**
+     * implements a collection of methods
+     * @method Implements
+     * @for F
+     * @param {Array <String>} the interface to implement
+     * @return this
+     */
+    this.Implements = function () {
+      var thisModule = this;
+      
+      function implementsMethod() {}
+      
+      for (var i = 0, len = arguments.length; i < len; i++) {
+        // isArray
+        if (globalWindow.Function.toString.call(arguments[i]).slice(8, -1).toLowerCase() === "array") {
+          for (var j = 0, j_len = arguments[i].length; j < j_len; j++) {
+            thisModule.Implements(arguments[i][j]);
+          }
+        }
+        else {
+          // does it contain a "."? If so, this is a namespaced item to resolve
+          if (arguments[i].indexOf(".") >= 0) {
+            thisModule.Implements(resolveNamespace(arguments[i]));
+          }
+          else {
+            if (!this.getMethod(arguments[i])) {
+              this.Method(arguments[i], implementsMethod);
+            }
+          }
+        }
+      }
+      
+      return this;
+    };
 
     /**
      * defines a constructor
@@ -236,30 +338,6 @@
      */
     this.getConstructor = function () {
       return localConstructor;
-    };
-
-    /**
-     * defines a method (this.* syntax)
-     * @method Final
-     * @for F
-     * @param name {String} the name to store
-     * @param fn {Function} the function to set
-     * @return this
-     */
-    this.Final = function (name, fn) {
-      privilegedMethods[name] = fn;
-      return this;
-    };
-
-    /**
-     * get a final defined method (this.* syntax)
-     * @method getFinal
-     * @for F
-     * @param name {String} the name of the method to get
-     * @return {Function}
-     */
-    this.getFinal = function (name) {
-      return privilegedMethods[name];
     };
 
     /**
@@ -342,73 +420,6 @@
     this.Extends(Class);
 
     placeNS[nameOf(ns)] = F;
-  }
-
-  /**
-   * @method createObject
-   * @private
-   * @for Sslac
-   * @see Class
-   */
-  function createObject(ns) {
-    SslacRegistry[ns] = new ObjectRef(ns);
-    return SslacRegistry[ns];
-  }
-
-  /**
-   * @method createFunction
-   * @private
-   * @for Sslac
-   * @see Function
-   */
-  function createFunction(ns, fn) {
-    var placeNS = namespaceOf(ns);
-    var placeName = nameOf(ns);
-    placeNS[placeName] = fn;
-  }
-
-  /**
-   * @method defineNamespace
-   * @private
-   * @for Sslac
-   * @see Define
-   */
-  function defineNamespace(ns) {
-    var placeNS = namespaceOf(ns);
-    var placeName = nameOf(ns);
-    placeNS[placeName] = placeNS[placeName] || {};
-  }
-  
-  /**
-   * @method resolveNamespace
-   * @private
-   * @for Sslac
-   * @see valueOf
-   */
-  function resolveNamespace(ns, root) {
-    return namespaceOf(ns, root)[nameOf(ns)];
-  }
-
-  /**
-   * @method getDefinition
-   * @private
-   * @for Sslac
-   * @see definitionOf
-   */
-  function getDefinition(ns) {
-    return SslacRegistry[ns];
-  }
-  
-  /**
-   * @method noConflict
-   * @private
-   * @for Sslac
-   * @see noConflict
-   */
-  function noConflict() {
-    var thisSslac = externalInterface;
-    globalWindow[NAMESPACE] = oldSslac;
-    return thisSslac;
   }
 
   // assign outward
