@@ -4,10 +4,9 @@
 
 "Wow, let's do that again!" - Donkey from Shrek
 
-What you're holding is a slick way to do prototypical classes in JavaScript. Sslac supports the usual class related functionality, plus a few extras. A lot of the code has been inspired by the libraries that came before it, in hopes it might inspire the libraries that come after it.
+What you're holding is a slick way to do prototypical classes in JavaScript. Sslac supports the usual class related functionality, plus a few extras. A lot of the code has been inspired by the libraries that came before it, in hopes it might inspire the libraries that come after it. With boldly sidestepping the pros/cons of this kind of object model, if this is what you're looking for, here it is. It's certainly easier than monkeying with object prototypes directly.
 
 Sslac is MIT Licensed
-Sections of the code contain the following licenses: BSD
 
 What you're getting:
 
@@ -108,3 +107,6 @@ You'll then run:
 * **config/** contains configs used in building such as the smoosh manifest
 * **src/** contains the Sslac source
 * **tests/** contains the Sslac source
+
+# Additional Licenses
+Sections of this code may include licenses that go beyond the MIT license. Those licenses may be found in the src/licenses directory.
