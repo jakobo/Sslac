@@ -9,7 +9,15 @@ if (module) {
 // FRAMING
 ////////////////////////////////////////////////////////////////////////////////
 
-// objects used in this test collection
+var INTERFACE_TEST      = ["foo", "bar", "baz", "quux"],
+    GENERIC_NAMESPACE   = "SslacTest.NS.A",
+    GENERIC_DEFINITION  = "SslacTest.DefinitionObject",
+    SEED_VALUE_ONE      = 3,
+    SEED_VALUE_TWO      = 5,
+    SEED_VALUE_THREE    = 7,
+    SEED_VALUE_FOUR     = 9;
+
+// basic namespaced object
 Sslac.Class("SslacTest.BasicNamespacedObject")
 .Constructor(function Constructor(input) {
   this.input = input;
@@ -18,6 +26,7 @@ Sslac.Class("SslacTest.BasicNamespacedObject")
   return this.input;
 });
 
+// basic extension object
 Sslac.Class("SslacTest.BasicExtensionObject").Extends("SslacTest.BasicNamespacedObject")
 .Constructor(function Constructor(input) {
   this.Parent(input);
@@ -26,6 +35,7 @@ Sslac.Class("SslacTest.BasicExtensionObject").Extends("SslacTest.BasicNamespaced
   return this.input;
 });
 
+// an extension object relying on this.Parent
 Sslac.Class("SslacTest.ChainedExtensionObject").Extends("SslacTest.BasicNamespacedObject")
 .Constructor(function Constructor(input, alsoInput) {
   this.Parent(input);
@@ -35,6 +45,24 @@ Sslac.Class("SslacTest.ChainedExtensionObject").Extends("SslacTest.BasicNamespac
   return this.Parent() + this.alsoInput;
 });
 
+// a static object
+Sslac.Static("SslacTest.BasicStaticObject")
+.Static("staticMethod", function staticMethod(input) {
+  return input;
+});
+
+Sslac.Class("SslacTest.BasicImplementsObject").Implements(INTERFACE_TEST)
+.Method("foo", function foo() {});
+
+Sslac.Class("SslacTest.BasicImplementsExtendsObject")
+.Extends("SslacTest.BasicImplementsObject")
+.Implements(INTERFACE_TEST);
+
+Sslac.Class("SslacTest.RedefinableObject")
+.Method("foo", function foo() {
+  return SEED_VALUE_ONE;
+});
+
 ////////////////////////////////////////////////////////////////////////////////
 // TESTS
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,13 +70,12 @@ Sslac.Class("SslacTest.ChainedExtensionObject").Extends("SslacTest.BasicNamespac
 module("Namespacing");
 
 test("Namespace Set and Retrieve", function() {
-  var testName = "SslacTest.NS.A";
-  Sslac.Define(testName);
+  Sslac.Define(GENERIC_NAMESPACE);
   
   ok(typeof SslacTest.NS.A == "object", "defines successfully");
-  ok(Sslac.nameOf(testName) == "A", "nameOf gets last item in chain");
-  strictEqual(Sslac.namespaceOf(testName), SslacTest.NS, "namespaceOf retrieves parent NS object");
-  strictEqual(Sslac.valueOf(testName), SslacTest.NS.A, "valueOf returns object at given NS");
+  ok(Sslac.nameOf(GENERIC_NAMESPACE) == "A", "nameOf gets last item in chain");
+  strictEqual(Sslac.namespaceOf(GENERIC_NAMESPACE), SslacTest.NS, "namespaceOf retrieves parent NS object");
+  strictEqual(Sslac.valueOf(GENERIC_NAMESPACE), SslacTest.NS.A, "valueOf returns object at given NS");
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,16 +83,15 @@ test("Namespace Set and Retrieve", function() {
 module("Definition Management");
 
 test("getDefinition", function() {
-  var testName = "SslacTest.DefinitionObject",
-      def = Sslac.Class(testName);
-  strictEqual(Sslac.definitionOf(testName), def, "definitionOf returns Sslac definition object");
+  var def = Sslac.Class(GENERIC_DEFINITION);
+  strictEqual(Sslac.definitionOf(GENERIC_DEFINITION), def, "definitionOf returns Sslac definition object");
 });
 
 ////////////////////////////////////////////////////////////////////////////////
 
 module("Instance Class", {
   setup: function() {
-    this.seedValue = 7;
+    this.seedValue = SEED_VALUE_ONE;
     this.baseObject = new SslacTest.BasicNamespacedObject(this.seedValue);
   },
   teardown: function() {
@@ -86,7 +112,7 @@ test("Constructor Tests", function() {
 
 module("Inherited Class", {
   setup: function() {
-    this.seedValue = 9;
+    this.seedValue = SEED_VALUE_ONE;
     this.extendObject = new SslacTest.BasicExtensionObject(this.seedValue);
   },
   teardown: function() {
@@ -112,8 +138,8 @@ test("New Methods", function() {
 
 module("Inherited & Chained Class", {
   setup: function() {
-    this.seedValue = 5;
-    this.seedValueTwo = 7;
+    this.seedValue = SEED_VALUE_ONE;
+    this.seedValueTwo = SEED_VALUE_TWO;
     this.extendObject = new SslacTest.ChainedExtensionObject(this.seedValue, this.seedValueTwo);
   },
   teardown: function() {
@@ -132,4 +158,57 @@ test("Parent Chaining", function() {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
+
+module("Static Class");
+
+test("Type Checks", function() {
+  ok(typeof SslacTest.BasicStaticObject == "object", "Static object is still an object");
+});
+
+test("Invocation", function() {
+  strictEqual(SslacTest.BasicStaticObject.staticMethod(SEED_VALUE_ONE), SEED_VALUE_ONE, "static invocation");
+});
+
+////////////////////////////////////////////////////////////////////////////////
+
+module("Interfaces", {
+  setup: function() {
+    this.ifaceObj = new SslacTest.BasicImplementsObject();
+    this.extIfaceObj = new SslacTest.BasicImplementsExtendsObject();
+  },
+  teardown: function() {
+    delete this.ifaceObj;
+    delete this.extIfaceObj;
+  }
+});
+
+test("Interface Defined", function() {
+  expect(INTERFACE_TEST.length);
+  for (var i = 0, len = INTERFACE_TEST.length; i < len; i++) {
+    ok(typeof this.ifaceObj[INTERFACE_TEST[i]] === "function", INTERFACE_TEST[i]+" is a function");
+  }
+});
+
+test("Error on Non Defined Method", function() {
+  expect(INTERFACE_TEST.length - 1);
+  for (var i = 0, len = INTERFACE_TEST.length; i < len; i++) {
+    try {
+      this.ifaceObj[INTERFACE_TEST[i]]();
+    }
+    catch(e) {
+      ok(true, "Caught undefined "+INTERFACE_TEST[i]);
+    }
+  }
+});
+
+test("Extended Objects inherit defined methods", function() {
+  // foo should work
+  expect(1);
+  try {
+    this.extIfaceObj.foo();
+    ok(true, "foo is valid");
+  }
+  catch(e) {}
+});
+
 

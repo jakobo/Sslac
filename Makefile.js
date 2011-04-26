@@ -3,6 +3,9 @@ var VERSION = "0.0.2",
     fs = require("fs"),
     qunit = require("qunit");
 
+// qunit settings
+qunit.options.coverage = false;
+
 // test, yo
 qunit.run({
   code: "./src/sslac.js",

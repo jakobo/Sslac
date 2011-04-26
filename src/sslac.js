@@ -9,7 +9,7 @@
    * Features:
    * - auto extension: Objects can be set to extend by default, allowing for
    *   easy inheritance of this.* properties as well as prototyped methods
-   * - static and instance functionality: Can create both statuc and instance
+   * - static and instance functionality: Can create both static and instance
    *   level objects
    * - monkeypatching: objects can be modified on the fly to ease code upgrade paths
    * @class Sslac
@@ -103,6 +103,17 @@
     SslacRegistry[ns] = new ObjectRef(ns);
     return SslacRegistry[ns];
   }
+  
+  /**
+   * @method createStatic
+   * @private
+   * @for Sslac
+   * @see Class
+   */
+  function createStatic(ns) {
+    SslacRegistry[ns] = new ObjectRef(ns, true);
+    return SslacRegistry[ns];
+  }
 
   /**
    * @method createFunction
@@ -182,13 +193,14 @@
    * @consructor
    * @for Sslac
    */
-  function ObjectRef(ns) {
+  function ObjectRef(ns, isStatic) {
     var parent = null,
         parentNS = "",
         localConstructor = function () {},
         privilegedMethods = {},
-        placeNS = namespaceOf(ns);
-    
+        placeNS = namespaceOf(ns),
+        staticObj = {};
+        
     /**
      * Builds privlieged methods
      * @for ObjectRef
@@ -293,11 +305,15 @@
     this.Implements = function () {
       var thisModule = this;
       
-      function implementsMethod() {}
+      function createImplementsMethod(name) {
+        return function() {
+          throw new Error("The interface defined requires "+name);
+        };
+      }
       
       for (var i = 0, len = arguments.length; i < len; i++) {
         // isArray
-        if (globalWindow.Function.toString.call(arguments[i]).slice(8, -1).toLowerCase() === "array") {
+        if (Object.prototype.toString.call(arguments[i]).slice(8, -1).toLowerCase() === "array") {
           for (var j = 0, j_len = arguments[i].length; j < j_len; j++) {
             thisModule.Implements(arguments[i][j]);
           }
@@ -309,7 +325,7 @@
           }
           else {
             if (!this.getMethod(arguments[i])) {
-              this.Method(arguments[i], implementsMethod);
+              this.Method(arguments[i], createImplementsMethod(arguments[i]));
             }
           }
         }
@@ -374,6 +390,7 @@
      */
     this.Static = function (name, fn) {
       F[name] = fn;
+      staticObj[name] = fn;
       return this;
     };
 
@@ -419,7 +436,12 @@
     // extend default class
     this.Extends(Class);
 
-    placeNS[nameOf(ns)] = F;
+    if (isStatic) {
+      placeNS[nameOf(ns)] = staticObj;
+    }
+    else {
+      placeNS[nameOf(ns)] = F;
+    }
   }
 
   // assign outward
@@ -433,7 +455,7 @@
    * @for Sslac
    * @see createObject
    * @param ns {String} the namespace to store the new object into
-   * @return {Object} the created object (F)
+   * @return {Object} the created object reference
    */
   externalInterface.Class = createObject;
   
@@ -441,11 +463,11 @@
    * Turns ObjectRef into F by instantiating the ObjectRef
    * @method Static
    * @for Sslac
-   * @see createObject
+   * @see createStatic
    * @param ns {String} the namespace to store the new object into
-   * @return {Object} the created object (F)
+   * @return {Object} the created object reference
    */
-  externalInterface.Static = createObject;
+  externalInterface.Static = createStatic;
   
   /**
    * Creates a function
@@ -454,6 +476,7 @@
    * @see createFunction
    * @param ns {String} the namespace to store the function in
    * @param fn {Function} the function to store
+   * @return {Object} the created object reference
    */
   externalInterface.Function = createFunction;
   
