@@ -34,6 +34,7 @@ Instance Classes:
 * **.Class()** Declare a class. This is also the start of the chained methods...
 * **.Extends()** (optional) Extend an existing class
 * **.Implements()** (optional) Require this object implements a list of methods
+* **.Constructor()** (optional) Declare a constructor for this object
 * **.Method()** (optional) Add a method to the object's prototype
 
 Static Classes:
@@ -49,7 +50,7 @@ Static Classes:
 * **.Static()** (optional) Adds a static method to the static object
 * **.Implements()** (optional) Require this object implements a list of methods
 
-Declaring Functions
+Declaring Functions:
 
     Sslac.Function("YourFunction.In.A.Namespace", function funcName() {
     });
@@ -57,6 +58,16 @@ Declaring Functions
     YourFunction.In.A.Namespace();
 
 * **.Function()** Declare a function object. This does not chain.
+
+Calling Parent Methods:
+
+    // ...
+    .Method("subClassMethod", function subClassMethod(paramOne) {
+      this.Parent(paramOne);
+    })
+    // ...
+
+* **this.Parent()** Call the parent method from within the subclassed method
 
 # Sslac Advanced: Redefining Classes at Runtime
 
@@ -74,6 +85,9 @@ Rewire:
     });
 
 * **.definitionOf()** Get the definition of a Sslac Namespaced Item. Restarts the chaining (see Instance/Static Classes)
+* **.getMethod()** Get the method of the specified name
+* **.getStatic()** Get the method of the specified name
+* **.getConstructor()** Get the constructor for the defined object
 
 # Building Sslac on your own
 You'll need:
