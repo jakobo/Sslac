@@ -1,7 +1,12 @@
-all: smoosh sslac cleantmp
+all: sslac cleantmp
+
+requires: smoosh qunit
 
 smoosh:
 	npm install smoosh
+
+qunit:
+	npm install qunit
 
 sslac:
 	node Makefile.js

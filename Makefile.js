@@ -1,7 +1,15 @@
-var VERSION = "0.0.1",
+var VERSION = "0.0.2",
     smoosh = require("smoosh"),
-    fs = require("fs");
+    fs = require("fs"),
+    qunit = require("qunit");
 
+// test, yo
+qunit.run({
+  code: "./src/sslac.js",
+  tests: "./tests/sslac.test.js"
+});
+
+// smoosh, double yo
 smoosh.make("config/smoosh.json");
 
 var copyright = fs.readFileSync("./src/copyright.js", "utf8"),
