@@ -353,8 +353,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       var thisModule = this;
       
       function createImplementsMethod(name) {
-        return function() {
-          throw new Error("The interface defined requires "+name);
+        return function () {
+          throw new Error("The interface defined requires " + name);
         };
       }
       

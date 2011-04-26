@@ -306,8 +306,8 @@
       var thisModule = this;
       
       function createImplementsMethod(name) {
-        return function() {
-          throw new Error("The interface defined requires "+name);
+        return function () {
+          throw new Error("The interface defined requires " + name);
         };
       }
       
