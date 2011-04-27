@@ -88,6 +88,12 @@ Rewire:
 * **.getStatic()** Get the method of the specified name
 * **.getConstructor()** Get the constructor for the defined object
 
+# Sslac in node.js
+
+    npm install Sslac
+
+    var Sslac = require("sslac");
+
 # Building Sslac on your own
 You'll need:
 
@@ -100,6 +106,10 @@ You'll then run:
 * cd Sslac
 * make requires
 * make
+
+Or if you've got NPM and just want it:
+
+* npm install Sslac
 
 # Directory Guide
 
