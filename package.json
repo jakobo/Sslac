@@ -1,0 +1,19 @@
+{
+  "name": "Sslac",
+  "description": "A slick way to do prototypical classes in JavaScript, even if it feels a bit backwards",
+  "version": "0.0.2",
+  "homepage": "https://github.com/jakobo/sslac/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Jakobo/Sslac.git"
+  },
+  "author": "Jakob Heuser <jakob@felocity.com>",
+  "main": "./artifacts/sslac-0.0.2.min.js",
+  "engines": {
+    "node": ">= 0.4.1"
+  },
+  "dependencies": {
+    "smoosh": ">= 0.2.0",
+    "qunit": ">= 0.1.5"
+  }
+}
