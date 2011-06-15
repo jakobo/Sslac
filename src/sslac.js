@@ -21,7 +21,10 @@
       NAMESPACE = "Sslac",
       SslacRegistry = {},
       externalInterface = null,
-      oldSslac = globalWindow[NAMESPACE];
+      reFunction = /^function/,
+      oldSslac = globalWindow[NAMESPACE],
+      HAS_FUNCTION_RECAST_BUG = false/*@cc_on || ((ScriptEngineMajorVersion()+(ScriptEngineMinorVersion()/10)) <= 5.8)@*/;
+      
 
   globalWindow[NAMESPACE] = globalWindow[NAMESPACE] || {};
   externalInterface = globalWindow[NAMESPACE];
@@ -52,6 +55,46 @@
         }
       }
     }
+  }
+  
+  /**
+   * A simple isArray checker based on comparing the prototype in a predictable way
+   * @method isArray
+   * @private
+   * @param arr {Array} an array to test
+   * @return {Boolean} true if the arr is an array
+   */
+  function isArray(arr) {
+    return (Object.prototype.toString.call(arr).slice(8, -1).toLowerCase() === "array") ? true : false;
+  }
+  
+  /**
+   * A test to validate if a provided object is a callable function
+   * functions can be upcast to Object if they go through window.opener. This makes sure
+   * it's still a callable function
+   * @method isCallableFunction
+   * @private
+   * @param fn {Function} an object to test
+   * @return {Boolean} true if fn was a callable function
+   */
+  function isCallableFunction(fn) {
+    if (typeof fn === "function") {
+      return true;
+    }
+
+    // IE specific (object, and looking at an object)
+    if (HAS_FUNCTION_RECAST_BUG && typeof fn === "object" && typeof fn.call !== "undefined" && typeof fn.apply !== "undefined") {
+      try {
+        // we test against the internal toString(). When moved through window.opener, trying to use
+        // Object.prototype will result in an unclassed object
+        return reFunction.test(fn.toString());
+      }
+      catch(e) {
+        return false; // toString() failed. Was either overridden and broken or not implemented
+      }
+    }
+  
+    return false;
   }
 
   /**
@@ -112,6 +155,17 @@
    */
   function createStatic(ns) {
     SslacRegistry[ns] = new ObjectRef(ns, true);
+    return SslacRegistry[ns];
+  }
+  
+  /**
+   * @method createStatic
+   * @private
+   * @for Sslac
+   * @see Implements
+   */
+  function createInterface(ns) {
+    SslacRegistry[ns] = new InterfaceRef(ns);
     return SslacRegistry[ns];
   }
 
@@ -185,6 +239,46 @@
       };
     };
   }
+  
+  function InterfaceRef(ns) {
+    var placeNS = namespaceOf(ns),
+        placeName = nameOf(ns),
+        thisModule = this,
+        cache = {};
+    
+    placeNS[placeName] = [];
+    
+    this.Method = function(name) {
+      if (!cache[name]) {
+        cache[name] = true;
+        placeNS[placeName].push(name);
+      }
+      return this;
+    };
+    
+    this.Extends = function(extNs) {
+      if (typeof extNs === "string") {
+        extNs = resolveNamespace(extNs);
+      }
+      
+      for (var i = 0, len = extNs.length; i < len; i++) {
+        thisModule.Method(extNs[i]);
+      }
+      
+      return this;
+    };
+    
+    // breaks the promise
+    this.test = function(obj) {
+      for (var i = 0, len = placeNS[placeName].length; i < len; i++) {
+        var name = placeNS[placeName][i];
+        if (!isCallableFunction(obj[name])) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
 
   /**
    * Root chaining object for Sslac. Takes a namespace and isStatic
@@ -196,7 +290,9 @@
   function ObjectRef(ns, isStatic) {
     var parent = null,
         parentNS = "",
-        localConstructor = function () {},
+        localConstructor = function () {
+          this.Parent.apply(this, arguments);
+        },
         privilegedMethods = {},
         placeNS = namespaceOf(ns),
         staticObj = {};
@@ -312,8 +408,7 @@
       }
       
       for (var i = 0, len = arguments.length; i < len; i++) {
-        // isArray
-        if (Object.prototype.toString.call(arguments[i]).slice(8, -1).toLowerCase() === "array") {
+        if (isArray(arguments[i])) {
           for (var j = 0, j_len = arguments[i].length; j < j_len; j++) {
             thisModule.Implements(arguments[i][j]);
           }
@@ -468,6 +563,8 @@
    * @return {Object} the created object reference
    */
   externalInterface.Static = createStatic;
+  
+  externalInterface.Interface = createInterface;
   
   /**
    * Creates a function
