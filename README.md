@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/Jakobo/Sslac.png)](http://travis-ci.org/Jakobo/Sslac)
 # Sslac: The somewhat backwards Class functionality added to JavaScript
 
 "I now see my early attempts to support the classical model in JavaScript as a mistake." - Douglas Crockford
